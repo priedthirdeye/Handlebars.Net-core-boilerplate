@@ -1,5 +1,12 @@
-{{> header }}
+
 HOME PAGE
 <h1>{{message}}</h1>
 
-{{> footer }}
+Users:<br />
+{{#if users}}
+    {{#each users}}
+        {{users.lasttName}},{{users.firstName}}<br />
+    {{/#each}}
+{{else}}
+    If and array/list of "users" were returned, there would be results here.
+{{/if}}

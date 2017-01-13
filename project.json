@@ -10,7 +10,8 @@
     "Microsoft.Extensions.Logging.Console": "1.0.0",
     "Handlebars.Net": "1.8.0",
     "Microsoft.AspNetCore.Routing": "1.1.0",
-    "System.Collections.NonGeneric": "4.0.1"
+    "System.Collections.NonGeneric": "4.0.1",
+    "Microsoft.AspNetCore.Mvc.Core": "1.0.1"
   },
 
   "tools": {

@@ -15,6 +15,8 @@ namespace HandebarsDotNetCore
 {
     public class Startup
     {
+        // Using a dictionary object as a cache so templates are not read from disk for each request.
+        Dictionary<string, Func<object, string>> templates = new Dictionary<string, Func<object, string>>();
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -33,8 +35,7 @@ namespace HandebarsDotNetCore
                 return next();
             });
 
-            // Using a dictionary object as a cache so templates are not read from disk for each request.
-            Dictionary<string, Func<object, string>> templates = new Dictionary<string, Func<object, string>>();
+            
             
             //Loop through Views directory recursively
             foreach (string file in Directory.EnumerateFiles("Views", "*.hbs", SearchOption.AllDirectories))
@@ -55,7 +56,6 @@ namespace HandebarsDotNetCore
                         var partialTemplate = Handlebars.Compile(reader);
                         Handlebars.RegisterTemplate(partialName, partialTemplate);
                     }
-
                 }          
             }
             
@@ -67,33 +67,46 @@ namespace HandebarsDotNetCore
                 // Ideally we would only load the templates into cache in production. Otherwise server needs restart on every template change even if using "dotnet watch run".
             }
 
-            var routeBuilder = new RouteBuilder(app);
+            var routeBuilder = new RouteBuilder(app);  
 
             // Index Page Route
-            routeBuilder.MapGet("", context => {
-                var data = new
-                {                    
-                    message = "Home Page Dynamic Data Working"
-                };
-                //Apparently this is an efficient way to retreive a value from a dictionary object by key
-                Func<object, string> template;
-                templates.TryGetValue(@"views\index.hbs", out template);
-                return context.Response.WriteAsync(template(data));
+            routeBuilder.MapGet("", context => {                
+                Dictionary<string, object> data = new Dictionary<string, object>(); // Apparently needed to use a dictionary in order to add "body" after the data object is passed to the render function. Otherwise it was throwing errors.
+                data["pageTitle"] = "This is a page title rendered into the layout";
+                data["message"] = "Home Page Data. Need to support a loop in data structure.";                
+                //data["users"] = [{"firstName": "Mike", "lastName": "Testing"}];  // Not sure how to accomplish this. Need to expose loop data that is not strongly typed objects to templates 
+                return context.Response.WriteAsync(render(@"views\index.hbs", data)); // ideally this could be written in a cleaner way. For example return render(@"views\index.hbs", data); or 
+                //return new HandlebarsResult("Hello Index!"); //tried to implement "HandlebarsResult". Was unsuccessful.
             });
 
             // About Page Route
             routeBuilder.MapGet("about", context => {
-                var data = new
-                {
-                    message = "Home Page Dynamic Data Working"
-                };
-                Func<object, string> template;
-                templates.TryGetValue(@"views\about.hbs", out template);
-                return context.Response.WriteAsync(template(data));
+                Dictionary<string, object> data = new Dictionary<string, object>(); // Apparently needed to use a dictionary in order to add "body" after the data object is passed to the render function. Otherwise it was throwing errors.
+                data["pageTitle"] = "This is a page title rendered into the layout";
+                data["message"] = "About Page Dynamic Data Working";
+                return context.Response.WriteAsync(render(@"views\about.hbs", data, "custom")); // ideally this could be written in a cleaner way. For example return render(@"views\index.hbs", data); or 
             });
 
-            var routes = routeBuilder.Build(); 
-            app.UseRouter(routes);
+            var routes = routeBuilder.Build();
+            app.UseRouter(routes); 
         }
+
+
+
+   
+        public string render(string path, dynamic data, string layout = "default")
+        {
+            Func<object, string> bodyTemplate;
+            Func<object, string> layoutTemplate;     
+            // Load body of main template from cache
+            templates.TryGetValue(path, out bodyTemplate);
+            // set parsed output to "body" property.
+            data["body"] = bodyTemplate(data);
+            // Load Layout from cache
+            templates.TryGetValue(@"views\layouts\"+ layout + ".hbs", out layoutTemplate);
+            // return parsed layout with data["body"] injected.
+            return layoutTemplate(data);
+        }
+     
     }
 }
