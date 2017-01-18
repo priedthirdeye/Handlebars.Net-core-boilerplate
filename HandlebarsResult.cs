@@ -1,20 +1,42 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace HandebarsDotNetCore
 {
-    internal class HandlebarsResult : ActionResult
+    public class HandlebarsResult : ContentResult
     {
-        private byte[] _stringAsByteArray;
-        public HandlebarsResult(string stringToWrite)
+        private string layout;
+        private object model;
+        private string templateName;
+
+        public HandlebarsResult(string templateName, object model, string layout)
         {
-            _stringAsByteArray = Encoding.ASCII.GetBytes(stringToWrite);
+            this.templateName = templateName;
+            this.model = model;
+            this.layout = layout;
         }
+
         public override Task ExecuteResultAsync(ActionContext context)
         {
-            context.HttpContext.Response.StatusCode = 200;
-            return context.HttpContext.Response.Body.WriteAsync(_stringAsByteArray, 0, _stringAsByteArray.Length);
+            var templateProvider = context.HttpContext.RequestServices.GetRequiredService<ITemplateProvider>();
+            var bodyTemplate = templateProvider.GetTemplate(this.templateName);
+
+            var body = bodyTemplate(model);
+
+            var layoutTemplate = templateProvider.GetLayoutTemplate(this.layout);
+
+            var page = layoutTemplate(new LayoutViewModel
+            {
+                Model = model,
+                Body = body
+            });
+
+            this.ContentType = "text/html";
+            this.Content = page;
+
+            return base.ExecuteResultAsync(context);
         }
     }
 }
