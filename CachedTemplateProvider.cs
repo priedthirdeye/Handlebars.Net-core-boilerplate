@@ -9,13 +9,13 @@ namespace HandebarsDotNetCore
 {
     public class CachedTemplateProvider : ITemplateProvider
     {
-        private ITemplateProvider innerProvider;
         private IMemoryCache memoryCache;
+        private TemplateLoader templateLoader;
 
-        public CachedTemplateProvider(IMemoryCache memoryCache)
+        public CachedTemplateProvider(IMemoryCache memoryCache, TemplateLoader templateLoader)
         {
-            this.innerProvider = new FileSystemTemplateProvider();
             this.memoryCache = memoryCache;
+            this.templateLoader = templateLoader;
         }
 
         public IHandlebars GetEnvironment()
@@ -23,7 +23,7 @@ namespace HandebarsDotNetCore
             return this.memoryCache.GetOrCreate($"tmpl_environment", (entry) =>
             {
                 entry.Priority = CacheItemPriority.High;
-                return this.innerProvider.GetEnvironment();
+                return this.templateLoader.CreateEnvironment();
             });
         }
 
@@ -32,7 +32,7 @@ namespace HandebarsDotNetCore
             return this.memoryCache.GetOrCreate($"tmpl_compiled_{key}", (entry) =>
             {
                 entry.Priority = CacheItemPriority.High;
-                return this.innerProvider.GetTemplate(key);
+                return this.templateLoader.GetTemplate(this.GetEnvironment(),key);
             });
         }
 
@@ -41,7 +41,7 @@ namespace HandebarsDotNetCore
             return this.memoryCache.GetOrCreate($"tmpl_layout_compiled_{key}", (entry) =>
             {
                 entry.Priority = CacheItemPriority.High;
-                return this.innerProvider.GetLayoutTemplate(key);
+                return this.templateLoader.GetLayoutTemplate(this.GetEnvironment(), key);
             });
         }
     }

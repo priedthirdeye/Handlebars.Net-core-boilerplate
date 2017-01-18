@@ -9,31 +9,21 @@ namespace HandebarsDotNetCore
 {
     public class FileSystemTemplateProvider : ITemplateProvider
     {
-        public IHandlebars GetEnvironment()
+        private TemplateLoader templateLoader;
+
+        public FileSystemTemplateProvider(TemplateLoader templateLoader)
         {
-            var environment = Handlebars.Create();
-            foreach (var file in Directory.EnumerateFiles("Views/partials"))
-            {
-                using (var reader = new StringReader(File.ReadAllText(file)))
-                {
-                    // Derive partial name from path, but remove "views\partials\" and ".hbs" suffix so partials can be referenced simply as {{> header}}
-                    string partialName = Path.GetFileNameWithoutExtension(file).ToLowerInvariant();
-                    var partialTemplate = environment.Compile(reader);
-                    environment.RegisterTemplate(partialName, partialTemplate);
-                }
-            }
-
-            return environment;
+            this.templateLoader = templateLoader;
         }
-
+        
         public Func<object, string> GetTemplate(string key)
         {
-            return GetEnvironment().Compile(File.ReadAllText(Path.Combine("Views", key + ".hbs")));
+            return this.templateLoader.GetTemplate(this.templateLoader.CreateEnvironment(), key);
         }
 
         public Func<object, string> GetLayoutTemplate(string key)
         {
-            return GetEnvironment().Compile(File.ReadAllText(Path.Combine("Views/layouts", key + ".hbs")));
+            return this.templateLoader.GetLayoutTemplate(this.templateLoader.CreateEnvironment(), key);
         }
 
     }
