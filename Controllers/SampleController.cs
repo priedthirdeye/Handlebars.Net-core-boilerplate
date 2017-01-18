@@ -92,23 +92,19 @@ namespace HandebarsDotNetCore
 
             model.pageTitle = "This is a page title rendered into the layout";
             model.message = "Home Page Data using expando object.";
-            model.users = new object[]
+
+            dynamic user1 = new ExpandoObject();
+            user1.firstName = "Oliver";
+            user1.lastName = "Twist";
+
+            dynamic user2 = new ExpandoObject();
+            user2.firstName = "Expando";
+            user2.lastName = "Object";
+
+            model.users = new List<object>
             {
-                new
-                    {
-                        firstName = "Oliver",
-                        lastName = "Twist"
-                    },
-                    new
-                    {
-                        firstName = "Peter",
-                        lastName = "pan"
-                    },
-                        new
-                    {
-                        firstName = "John",
-                        lastName = "Do"
-                    }
+                user1,
+                user2
             };
 
             return this.Handlebars((object)model, "index");
