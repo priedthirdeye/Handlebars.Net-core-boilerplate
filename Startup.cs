@@ -18,15 +18,17 @@ namespace HandebarsDotNetCore
         // Using a dictionary object as a cache so templates are not read from disk for each request.
         Dictionary<string, Func<object, string>> templates = new Dictionary<string, Func<object, string>>();
 
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureDevelopmentServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddTransient<TemplateLoader>();
             services.AddTransient<ITemplateProvider, FileSystemTemplateProvider>();
         }
 
-        public void ConfigureProductionServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddTransient<TemplateLoader>();
             services.AddTransient<ITemplateProvider, CachedTemplateProvider>();
         }
 

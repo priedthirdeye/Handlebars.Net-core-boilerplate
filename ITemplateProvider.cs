@@ -7,8 +7,6 @@ namespace HandebarsDotNetCore
 {
     public interface ITemplateProvider
     {
-        HandlebarsDotNet.IHandlebars GetEnvironment();
-
         Func<object, string> GetTemplate(string key);
         Func<object, string> GetLayoutTemplate(string key);
     }
