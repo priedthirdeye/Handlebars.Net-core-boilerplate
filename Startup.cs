@@ -22,7 +22,7 @@ namespace HandebarsDotNetCore
         {
             services.AddMvc();
             services.AddTransient<TemplateLoader>();
-            services.AddTransient<ITemplateProvider, CachedTemplateProvider>();
+            services.AddTransient<ITemplateProvider, FileSystemTemplateProvider>();
         }
 
         public void ConfigureProductionServices(IServiceCollection services)
