@@ -99,7 +99,12 @@ namespace HandebarsDotNetCore
             //var routes = routeBuilder.Build();
             //app.UseRouter(routes); 
 
-            app.UseMvc();
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller}/{action=Index}/{id?}");
+            });
         }
 
 

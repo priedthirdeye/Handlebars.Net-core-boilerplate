@@ -2,6 +2,12 @@
 HOME PAGE
 <h1>{{message}}</h1>
 
+{{#tenant}}
+<div class="alert alert-warning">
+    {{name}}
+</div>
+{{/tenant}}
+
 Users:<br />
 {{#if users}}
     {{#each users}}
